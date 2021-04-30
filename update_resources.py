@@ -18,7 +18,7 @@ import avinput2annovardb
 # TODO:
 # - a config file with all PATHS or not
 # run example on medium
-# python update_resources.py -c -p /RS_IURC/data/MobiDL/Datasets/annovar/humandb -a /RS_IURC/data/MobiDL/Datasets/annovar/2020Jun08
+# python update_resources.py -c -hp /RS_IURC/data/MobiDL/Datasets/annovar/humandb -a /RS_IURC/data/MobiDL/Datasets/annovar/2020Jun08 -g GRCh37
 ################
 
 def log(level, text):
@@ -36,13 +36,14 @@ def get_last_md5_file(resource_dir, resource_type, resource_regexp, target_suffi
         match_obj = re.search(rf'{resource_regexp}{target_suffix}.gz.md5$', current_file)
         if match_obj:
             dates.append(match_obj.group(1))
-    current_resource = '{0}{1}_{2}{3}.gz.md5'.format(resource_dir, resource_type, max(dates), target_suffix)
-    with open(current_resource, 'r') as current_file:
-        # print(clinvar_file.read())
-        match_obj = re.search(r'^(\w+)\s', current_file.read())
-        if match_obj:
-            return match_obj.group(1)
-    return 'f'
+    if dates:
+        current_resource = '{0}{1}_{2}{3}.gz.md5'.format(resource_dir, resource_type, max(dates), target_suffix)
+        with open(current_resource, 'r') as current_file:
+            # print(clinvar_file.read())
+            match_obj = re.search(r'^(\w+)\s', current_file.read())
+            if match_obj:
+                return match_obj.group(1), max(dates)
+    return 'no previous file', 1
 
 # from https://www.techcoil.com/blog/how-to-download-a-file-via-http-post-and-http-get-with-python-3-requests-library/
 
@@ -82,7 +83,7 @@ def get_new_ncbi_resource_file(http, resource_type, resource_dir, regexp, label,
                 break
     except Exception:
         log('WARNING', 'Unable to contact {0} {1}'.format(label, url))
-        return 0
+        return 0, 0
     if match_obj:
         resource_date = match_obj.group(1)
         # Read current clinvar md5
@@ -97,13 +98,12 @@ def get_new_ncbi_resource_file(http, resource_type, resource_dir, regexp, label,
                 log('INFO', '{0} distant md5: {1}'.format(label, distant_md5))
         except Exception:
             log('WARNING', 'Unable to contact {0} md5 {1}'.format(label, url))
-            return 0
+            return 0, 0
         if distant_md5:
             # Get md5 from local file
             # current_md5_value = get_last_clinvar_md5_file('{}clinvar/hg38/'.format(resources_path))
-            current_md5_value = get_last_md5_file(resource_dir, resource_type, regexp, target_suffix)
+            current_md5_value, last_version = get_last_md5_file(resource_dir, resource_type, regexp, target_suffix)
             log('INFO', '{0} local md5: {1}'.format(label, current_md5_value))
-            exit
             if current_md5_value != distant_md5:
                 # Download remote file
                 # log('DEBUG', '{0}{1}_{2}{3}.gz'.format(url, resource_type, resource_date, target_suffix))
@@ -143,7 +143,7 @@ def get_new_ncbi_resource_file(http, resource_type, resource_dir, regexp, label,
                                     label, resource_type, resource_date, target_suffix
                                 )
                             )
-                            return '{0}_{1}{2}.gz'.format(resource_type, resource_date, target_suffix)
+                            return '{0}_{1}{2}.gz'.format(resource_type, resource_date, target_suffix), last_version
                         else:
                             # Remove file
                             os.remove(
@@ -167,20 +167,20 @@ def get_new_ncbi_resource_file(http, resource_type, resource_dir, regexp, label,
                                     resource_type, resource_date, target_suffix
                                 )
                             )
-                            return 0
-        return 0
+                            return 0, 0
+        return 0, 0
 
 
 def main():
     parser = argparse.ArgumentParser(
         description='Checks for ANNOVAR resources distant updates and convert to ANNOVAR format',
-        usage='python update_resources.py <-c> <-p /path/to/annovar/humandb> <-g [GRCh37|GRCh38]> <-a path/to/annovar>'
+        usage='python update_resources.py <-c> <-hp /path/to/annovar/humandb> <-g [GRCh37|GRCh38]> <-a path/to/annovar>'
     )
     parser.add_argument('-c', '--clinvar', default='', required=False,
                         help='Optionally updates clinvar vcf', action='store_true')
     parser.add_argument('-d', '--dbsnp', default='', required=False,
                         help='Optionally updates dbsnp vcf', action='store_true')
-    parser.add_argument('-h', '--humandb-path', default=None,
+    parser.add_argument('-hp', '--humandb-path', default=None,
                         help='Final full path to the resource to update')
     parser.add_argument('-g', '--genome-version', default='GRCh37',
                         help='Genome version [GRCh37|GRCh38]')
@@ -190,9 +190,10 @@ def main():
 
     # dbsnp_url = 'https://ftp.ncbi.nih.gov/snp/latest_release/'
     if args.humandb_path:
-        resources_path = args.path
+        resources_path = args.humandb_path
     if args.genome_version:
         genome_version = args.genome_version
+        annovar_genome_version = 'hg19' if genome_version == 'GRCh37' else 'hg38'
     clinvar_url = 'https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_{}/'.format(genome_version)
     if args.annovar_path:
         annovar_path = args.annovar_path
@@ -206,10 +207,10 @@ def main():
             genome_version and \
             annovar_path:
         # http, resource_type, resource_dir, regexp, label, url, target_suffix
-        new_file = get_new_ncbi_resource_file(
+        new_file, last_version = get_new_ncbi_resource_file(
             http,
             'clinvar',
-            'clinvar/{}/'.format(genome_version),
+            'clinvar/{0}/'.format(genome_version),
             r'clinvar_(\d+)',
             'ClinVar',
             clinvar_url,
@@ -251,20 +252,19 @@ def main():
                     )
                 )
                 # the file needs to be formatted as an annovar db
-                # try:
-                annovar_db_file = avinput2annovardb.clinvaravinput2annovardb(
-                    'clinvar/{0}/{1}.avinput'.format(genome_version, avinput_file),
-                    ['ALLELEID', 'CLNDN', 'CLNDISDB', 'CLNREVSTAT', 'CLNSIG']
-                )
-
-                # except Exception:
-                #     log(
-                #         'ERROR',
-                #         'Failed in converting to ANNOVAR db format clinvar/{0}/{1}.avinput'.format(
-                #             genome_version, avinput_file
-                #         )
-                #     )
-                #     sys.exit(1)
+                try:
+                    annovar_db_file = avinput2annovardb.clinvaravinput2annovardb(
+                        'clinvar/{0}/{1}.avinput'.format(genome_version, avinput_file),
+                        ['ALLELEID', 'CLNDN', 'CLNDISDB', 'CLNREVSTAT', 'CLNSIG']
+                    )
+                except Exception:
+                    log(
+                        'ERROR',
+                        'Failed in converting to ANNOVAR db format clinvar/{0}/{1}.avinput'.format(
+                            genome_version, avinput_file
+                        )
+                    )
+                    sys.exit(1)
                 log(
                     'INFO',
                     'File successfully converted to ANNOVAR db format {}'.format(
@@ -284,7 +284,9 @@ def main():
                         '{}/index_annovar.pl'.format(annovar_path),
                         annovar_db_file,
                         '-outfile',
-                        '{0}/{1}'.format(resources_path, os.path.basename(annovar_db_file)),
+                        '{0}/{1}_{2}'.format(
+                            resources_path, annovar_genome_version, os.path.basename(annovar_db_file)
+                        ),
                     ],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.STDOUT
@@ -296,6 +298,11 @@ def main():
                             resources_path, os.path.basename(annovar_db_file)
                         )
                     )
+                    if last_version != 1:
+                        # rm previous version
+                        os.remove('clinvar/{0}/clinvar_{1}.vcf.gz'.format(genome_version, last_version))
+                        os.remove('clinvar/{0}/clinvar_{1}.vcf.gz.tbi'.format(genome_version, last_version))
+                        os.remove('clinvar/{0}/clinvar_{1}.vcf.gz.md5'.format(genome_version, last_version))
 
     # not available
     # if args.dbsnp:
