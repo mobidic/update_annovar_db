@@ -81,7 +81,7 @@ def get_new_ncbi_resource_file(http, resource_type, resource_dir, regexp, label,
                 break
     except Exception:
         log('WARNING', 'Unable to contact {0} {1}'.format(label, url))
-        return 0, 0
+        return 0, 0, 0
     if match_obj:
         resource_date = match_obj.group(1)
         # Read current clinvar md5
@@ -96,7 +96,7 @@ def get_new_ncbi_resource_file(http, resource_type, resource_dir, regexp, label,
                 log('INFO', '{0} distant md5: {1}'.format(label, distant_md5))
         except Exception:
             log('WARNING', 'Unable to contact {0} md5 {1}'.format(label, url))
-            return 0, 0
+            return 0, 0, 0
         if distant_md5:
             # Get md5 from local file
             # current_md5_value = get_last_clinvar_md5_file('{}clinvar/hg38/'.format(resources_path))
@@ -141,9 +141,9 @@ def get_new_ncbi_resource_file(http, resource_type, resource_dir, regexp, label,
                                     label, resource_type, resource_date, target_suffix
                                 )
                             )
-                            return '{0}_{1}{2}.gz'.format(resource_type, resource_date, target_suffix), last_version
+                            return '{0}_{1}{2}.gz'.format(resource_type, resource_date, target_suffix), last_version, resource_date
                         else:
-                            # Remove file
+                            # Remove old files
                             os.remove(
                                 '{0}{1}_{2}{3}.gz'.format(
                                     resource_dir, resource_type, resource_date, target_suffix
@@ -165,8 +165,8 @@ def get_new_ncbi_resource_file(http, resource_type, resource_dir, regexp, label,
                                     resource_type, resource_date, target_suffix
                                 )
                             )
-                            return 0, 0
-        return 0, 0
+                            return 0, 0, 0
+        return 0, 0, 0
 
 
 def main():
@@ -174,16 +174,16 @@ def main():
         description='Checks for ANNOVAR resources distant updates and convert to ANNOVAR format',
         usage='python update_resources.py <-c> <-hp /path/to/annovar/humandb> <-g [GRCh37|GRCh38]> <-a path/to/annovar>'
     )
-    parser.add_argument('-c', '--clinvar', default='', required=False,
-                        help='Optionally updates clinvar vcf', action='store_true')
-    parser.add_argument('-d', '--dbsnp', default='', required=False,
-                        help='Optionally updates dbsnp vcf', action='store_true')
+    parser.add_argument('-d', '--database-type', default='clinvar', required=True,
+                        help='Database to update (e.g. clinvar)')
     parser.add_argument('-hp', '--humandb-path', default=None,
                         help='Final full path to the resource to update')
     parser.add_argument('-g', '--genome-version', default='GRCh37',
                         help='Genome version [GRCh37|GRCh38]')
     parser.add_argument('-a', '--annovar-path', required=True,
                         help='Full path to annovar dir')
+    parser.add_argument('-r', '--rename', required=False,
+                        help='A name to replace the date in the ANNOVAR db file')
     args = parser.parse_args()
 
     # dbsnp_url = 'https://ftp.ncbi.nih.gov/snp/latest_release/'
@@ -198,14 +198,18 @@ def main():
         if annovar_path and \
                 not resources_path:
             resources_path = '{}/humandb'.format(annovar_path)
+    if args.rename:
+        new_name = args.rename
     http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
+    if args.database_type:
+        db_type = args.database_type
     # match_obj = None
-    if args.clinvar and \
+    if db_type == 'clinvar' and \
             resources_path and \
             genome_version and \
             annovar_path:
         # http, resource_type, resource_dir, regexp, label, url, target_suffix
-        new_file, last_version = get_new_ncbi_resource_file(
+        new_file, last_version, resource_date = get_new_ncbi_resource_file(
             http,
             'clinvar',
             'clinvar/{0}/'.format(genome_version),
@@ -255,6 +259,17 @@ def main():
                         'clinvar/{0}/{1}.avinput'.format(genome_version, avinput_file),
                         ['ALLELEID', 'CLNDN', 'CLNDISDB', 'CLNREVSTAT', 'CLNSIG']
                     )
+                    if new_name:
+                        new_annovar_db_file = re.sub(r'_\d{8}\.', '_{}.'.format(new_name), annovar_db_file)
+                        # create a file which keeps the last version
+                        ver_file = open(
+                            '{0}/{1}_clinvar_{2}.ver'.format(resources_path, annovar_genome_version, new_name),
+                            "w"
+                        )
+                        ver_file.write('ClinVar:{0}\n'.format(resource_date))
+                        ver_file.close()
+                    else:
+                        new_annovar_db_file = annovar_db_file
                 except Exception:
                     log(
                         'ERROR',
@@ -266,13 +281,13 @@ def main():
                 log(
                     'INFO',
                     'File successfully converted to ANNOVAR db format {}'.format(
-                        annovar_db_file
+                        new_annovar_db_file
                     )
                 )
                 log(
                     'INFO',
                     'Launching ANNOVAR indexing on {0}/{1}'.format(
-                        resources_path, os.path.basename(annovar_db_file)
+                        resources_path, os.path.basename(new_annovar_db_file)
                     )
                 )
                 # run index_annovar.pl
@@ -283,7 +298,7 @@ def main():
                         annovar_db_file,
                         '-outfile',
                         '{0}/{1}_{2}'.format(
-                            resources_path, annovar_genome_version, os.path.basename(annovar_db_file)
+                            resources_path, annovar_genome_version, os.path.basename(new_annovar_db_file)
                         ),
                     ],
                     stdout=subprocess.DEVNULL,
@@ -293,7 +308,7 @@ def main():
                     log(
                         'INFO',
                         'ANNOVAR successfully indexed {0}/{1}'.format(
-                            resources_path, os.path.basename(annovar_db_file)
+                            resources_path, os.path.basename(new_annovar_db_file)
                         )
                     )
                     if last_version != 1:
@@ -301,6 +316,8 @@ def main():
                         os.remove('clinvar/{0}/clinvar_{1}.vcf.gz'.format(genome_version, last_version))
                         os.remove('clinvar/{0}/clinvar_{1}.vcf.gz.tbi'.format(genome_version, last_version))
                         os.remove('clinvar/{0}/clinvar_{1}.vcf.gz.md5'.format(genome_version, last_version))
+                        os.remove('clinvar/{0}/clinvar_{1}.avinput'.format(genome_version, last_version))
+                        os.remove('clinvar/{0}/clinvar_{1}.txt'.format(genome_version, last_version))
 
     # not available
     # if args.dbsnp:

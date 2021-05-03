@@ -3,8 +3,7 @@ import re
 
 
 def clinvaravinput2annovardb(avinput_file, fields):
-    annovar_db = '#Chr    Start   End     Ref     Alt     CLNALLELEID     \
-CLNDN   CLNDISDB        CLNREVSTAT      CLNSIG\n'
+    annovar_db = '#Chr\tStart\tEnd\tRef\tAlt\tCLNALLELEID\tCLNDN\tCLNDISDB\tCLNREVSTAT\tCLNSIG\n'
     with open(avinput_file) as input_file:
         content = input_file.readlines()
     for current_line in content:
@@ -43,10 +42,12 @@ CLNDN   CLNDISDB        CLNREVSTAT      CLNSIG\n'
     annovar_db_final = re.sub(r',', r'\\x2c', annovar_db)
     annovar_db_file = open('{}.txt'.format(os.path.splitext(avinput_file)[0]), "w")
     annovar_db_file.write(annovar_db_final)
+    annovar_db_file.close()
     return '{}.txt'.format(os.path.splitext(avinput_file)[0])
 
 
 if __name__ == '__main__':
+    # for testing prupose
     clinvaravinput2annovardb(
         'clinvar/GRCh37/clinvar_test.avinput',
         ['ALLELEID', 'CLNDN', 'CLNDISDB', 'CLNREVSTAT', 'CLNSIG']
