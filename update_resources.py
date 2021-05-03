@@ -15,8 +15,6 @@ import avinput2annovardb
 
 
 ################
-# TODO:
-# - a config file with all PATHS or not
 # run example on medium
 # python update_resources.py -c -hp /RS_IURC/data/MobiDL/Datasets/annovar/humandb -a /RS_IURC/data/MobiDL/Datasets/annovar/2020Jun08 -g GRCh37
 ################

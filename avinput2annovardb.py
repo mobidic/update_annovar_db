@@ -8,10 +8,7 @@ CLNDN   CLNDISDB        CLNREVSTAT      CLNSIG\n'
     with open(avinput_file) as input_file:
         content = input_file.readlines()
     for current_line in content:
-    #with open(avinput_file) as input_file:
-        #while input_file:
-            #current_line = input_file.readline()
-            # get INFO field and keep interesting ones
+        # get INFO field and keep interesting ones
         splitted_line = re.split(r'\t', current_line)
         # fill in the beginning chr start end ref alt
         i = 0
@@ -42,9 +39,10 @@ CLNDN   CLNDISDB        CLNREVSTAT      CLNSIG\n'
             info_dict['CLNREVSTAT'],
             info_dict['CLNSIG']
         )
-        # print(annovar_db)
+    # replace ',' with '\x2c in annovar fields'
+    annovar_db_final = re.sub(r',', r'\\x2c', annovar_db)
     annovar_db_file = open('{}.txt'.format(os.path.splitext(avinput_file)[0]), "w")
-    annovar_db_file.write(annovar_db)
+    annovar_db_file.write(annovar_db_final)
     return '{}.txt'.format(os.path.splitext(avinput_file)[0])
 
 
