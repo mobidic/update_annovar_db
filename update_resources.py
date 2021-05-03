@@ -16,7 +16,7 @@ import avinput2annovardb
 
 ################
 # run example on medium
-# python update_resources.py -c -hp /RS_IURC/data/MobiDL/Datasets/annovar/humandb -a /RS_IURC/data/MobiDL/Datasets/annovar/2020Jun08 -g GRCh37
+# python update_resources.py -d clinvar -hp /RS_IURC/data/MobiDL/Datasets/annovar/humandb -a /RS_IURC/data/MobiDL/Datasets/annovar/2020Jun08 -g GRCh38 -r latest
 ################
 
 def log(level, text):
@@ -172,7 +172,7 @@ def get_new_ncbi_resource_file(http, resource_type, resource_dir, regexp, label,
 def main():
     parser = argparse.ArgumentParser(
         description='Checks for ANNOVAR resources distant updates and convert to ANNOVAR format',
-        usage='python update_resources.py <-c> <-hp /path/to/annovar/humandb> <-g [GRCh37|GRCh38]> <-a path/to/annovar>'
+        usage='python update_resources.py <-d clinvar> <-hp /path/to/annovar/humandb> <-g [GRCh37|GRCh38]> <-a path/to/annovar>'
     )
     parser.add_argument('-d', '--database-type', default='clinvar', required=True,
                         help='Database to update (e.g. clinvar)')
@@ -183,7 +183,7 @@ def main():
     parser.add_argument('-a', '--annovar-path', required=True,
                         help='Full path to annovar dir')
     parser.add_argument('-r', '--rename', required=False,
-                        help='A name to replace the date in the ANNOVAR db file')
+                        help='A name to replace the date in the ANNOVAR db file, e.g. latest')
     args = parser.parse_args()
 
     # dbsnp_url = 'https://ftp.ncbi.nih.gov/snp/latest_release/'
@@ -192,6 +192,9 @@ def main():
     if args.genome_version:
         genome_version = args.genome_version
         annovar_genome_version = 'hg19' if genome_version == 'GRCh37' else 'hg38'
+        # creates clinvar/GRCh38 folder if does not exist
+        if not os.path.isdir('clinvar/GRCh38'):
+            os.mkdir('clinvar/GRCh38', 0o755)
     clinvar_url = 'https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_{}/'.format(genome_version)
     if args.annovar_path:
         annovar_path = args.annovar_path
