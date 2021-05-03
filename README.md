@@ -8,11 +8,12 @@ If you wish to update (clinvar data)[https://www.ncbi.nlm.nih.gov/clinvar/] for 
 
 ## Requirements
 
-- a (Conda)[https://docs.conda.io/] environment
 - a decently recent version of (ANNOVAR)[https://annovar.openbioinformatics.org/en/latest/] (tested on 2020Jun08).
 
 
 ## Install
+
+### Using conda
 
 Clone the repo then run:
 
