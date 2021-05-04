@@ -14,11 +14,6 @@ import avinput2annovardb
 # not we should update - and updates
 
 
-################
-# run example on medium
-# python update_resources.py -d clinvar -hp /RS_IURC/data/MobiDL/Datasets/annovar/humandb -a /RS_IURC/data/MobiDL/Datasets/annovar/2020Jun08 -g GRCh38 -r latest
-################
-
 def log(level, text):
     localtime = time.asctime(time.localtime(time.time()))
     if level == 'ERROR':
