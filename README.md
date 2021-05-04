@@ -30,7 +30,7 @@ To test the avinput to annovar db format conversion run:
 
 `python avinput2annovardb.py`
 
-this will try to convert the clinvar/GRCh37/clinvar_test.avinput to a new file linvar/GRCh37/clinvar_test.txt compatible wth ANNOVAR db format. I f you are happy woth this, then you can try the entire script.
+this will try to convert the clinvar/GRCh37/clinvar_test.avinput to a new file linvar/GRCh37/clinvar_test.txt compatible wth ANNOVAR db format. If you are happy with it, then you can try the entire script.
 
 ## Usage
 
