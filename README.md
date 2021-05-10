@@ -53,7 +53,7 @@ The script checks the clinvar/{genome_version}/ folder to detect a previous vers
 
 ## Warning
 
-The resulting version of clinvar is not decomposed not normalised before conversion to ANNOVAR format. However some internal tests have shown that the current Clinvar VCF are already processed, then these steps are no longer mandatory. But use it at your own risks! 
+The resulting version of clinvar is not decomposed not normalised before conversion to ANNOVAR format. However some internal tests have shown that the current Clinvar VCFs are already processed, then these steps are no longer mandatory. But use it at your own risks! 
 
 ## ToDo
 
