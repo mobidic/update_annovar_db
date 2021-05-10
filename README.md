@@ -32,6 +32,10 @@ To test the avinput to annovar db format conversion run:
 
 this will try to convert the clinvar/GRCh37/clinvar_test.avinput to a new file linvar/GRCh37/clinvar_test.txt compatible wth ANNOVAR db format. If you are happy with it, then you can try the entire script.
 
+## Warning
+
+The resulting version of clinvar is not decomposed not normalised before conversion to ANNOVAR format. However some internal tests have shown that the current Clinvar VCF are already processed, then these steps are no longer mandatory. But use it at your own risks! 
+
 ## Usage
 
 ### Required arguments
