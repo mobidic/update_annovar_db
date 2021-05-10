@@ -32,10 +32,6 @@ To test the avinput to annovar db format conversion run:
 
 this will try to convert the clinvar/GRCh37/clinvar_test.avinput to a new file linvar/GRCh37/clinvar_test.txt compatible wth ANNOVAR db format. If you are happy with it, then you can try the entire script.
 
-## Warning
-
-The resulting version of clinvar is not decomposed not normalised before conversion to ANNOVAR format. However some internal tests have shown that the current Clinvar VCF are already processed, then these steps are no longer mandatory. But use it at your own risks! 
-
 ## Usage
 
 ### Required arguments
@@ -54,6 +50,10 @@ The resulting version of clinvar is not decomposed not normalised before convers
 `python update_resources.py -c -hp /Path/to/annovar/humandb -a /Path/to/annovar/2020Jun08 -g GRCh38`
 
 The script checks the clinvar/{genome_version}/ folder to detect a previous version of Clinvar. Then it downloads the most recent md5 file of clinvar and compares it to the version present in the clinvar/{genome_version} folder (or to nothing of there's no previous version). If the 2 md5 do not match, the script downloads the latest clinvar VCF then converts it in several steps into ANNOVAR db format.
+
+## Warning
+
+The resulting version of clinvar is not decomposed not normalised before conversion to ANNOVAR format. However some internal tests have shown that the current Clinvar VCF are already processed, then these steps are no longer mandatory. But use it at your own risks! 
 
 ## ToDo
 
