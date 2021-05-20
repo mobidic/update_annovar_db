@@ -26,7 +26,7 @@ def get_last_md5_file(resource_dir, resource_type, resource_regexp, target_suffi
     dates = []
     for current_file in files:
         # print(current_file)
-        match_obj = re.search(rf'{resource_regexp}{target_suffix}.gz.md5$', current_file)
+        match_obj = re.search(rf'{resource_regexp}{target_suffix}.gz.md5', current_file)
         if match_obj:
             dates.append(match_obj.group(1))
     if dates:
