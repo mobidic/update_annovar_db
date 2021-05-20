@@ -271,7 +271,7 @@ def main():
                 except Exception:
                     log(
                         'ERROR',
-                        'Failed in converting to ANNOVAR db format clinvar/{0}/{1}.avinput'.format(
+                        'Failed in converting to ANNOVAR db format clinvar/{0}/{1}.avinput - Clinavr VCF format may have changed, check fields in update_resources.py and in avinput2annovardb.py.'.format(
                             genome_version, avinput_file
                         )
                     )
