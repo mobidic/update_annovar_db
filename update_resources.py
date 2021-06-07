@@ -26,7 +26,7 @@ def get_last_md5_file(resource_dir, resource_type, resource_regexp, target_suffi
     dates = []
     for current_file in files:
         # print(current_file)
-        match_obj = re.search(rf'{resource_regexp}{target_suffix}.gz.md5', current_file)
+        match_obj = re.search(rf'{resource_regexp}{target_suffix}\.gz\.md5', current_file)
         if match_obj:
             dates.append(match_obj.group(1))
     if dates:
@@ -70,7 +70,7 @@ def get_new_ncbi_resource_file(http, resource_type, resource_dir, regexp, label,
         resource_dir_html = http.request('GET', url).data.decode('utf-8')
         resource_dir_content = re.split('\n', resource_dir_html)
         for html in resource_dir_content:
-            match_obj = re.search(rf'\"{regexp}{target_suffix}.gz\"', html)
+            match_obj = re.search(rf'\"{regexp}{target_suffix}\.gz\"', html)
             if match_obj:
                 # first is last
                 break
