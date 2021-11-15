@@ -186,7 +186,10 @@ def main():
         if os.access(args.humandb_path, os.W_OK | os.X_OK):
             resources_path = args.humandb_path
         else:
-            log('ERROR', 'The human_db directory ({0}) does not seem to have write permission'.format(args.humandb_path))
+            log(
+                'ERROR',
+                'The human_db directory ({0}) does not seem to have write permission'.format(args.humandb_path)
+            )
     if args.genome_version:
         genome_version = args.genome_version
         annovar_genome_version = 'hg19' if genome_version == 'GRCh37' else 'hg38'
@@ -274,7 +277,7 @@ def main():
                 except Exception:
                     log(
                         'ERROR',
-                        'Failed in converting to ANNOVAR db format clinvar/{0}/{1}.avinput - Clinavr VCF format may have changed, check fields in update_resources.py and in avinput2annovardb.py.'.format(
+                        'Failed in converting to ANNOVAR db format clinvar/{0}/{1}.avinput - Clinvar VCF format may have changed, check fields in update_resources.py and in avinput2annovardb.py.'.format(
                             genome_version, avinput_file
                         )
                     )
