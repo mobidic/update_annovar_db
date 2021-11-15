@@ -38,7 +38,7 @@ this will try to convert the clinvar/GRCh37/clinvar_test.avinput to a new file l
 
 - -d, --database-type: the database type (e.g. 'clinvar')
 - -a, --annovar-path: path to ANNOVAR perl scripts folder
-- -h), --humandb-path to ANNOVAR humandb/ folder (-hp)
+- -hp, --humandb-path to ANNOVAR humandb/ folder
 
 ### Optional arguments
 
@@ -54,7 +54,3 @@ The script checks the clinvar/{genome_version}/ folder to detect a previous vers
 ## Warning
 
 The resulting version of clinvar is not decomposed not normalised before conversion to ANNOVAR format. However some internal tests have shown that the current Clinvar VCFs are already processed, then these steps are no longer mandatory. But use it at your own risks! 
-
-## ToDo
-
-- check that the script fails if the Clinvar format changes
