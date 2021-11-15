@@ -183,7 +183,10 @@ def main():
 
     # dbsnp_url = 'https://ftp.ncbi.nih.gov/snp/latest_release/'
     if args.humandb_path:
-        resources_path = args.humandb_path
+        if os.access(args.humandb_path, os.W_OK | os.X_OK):
+            resources_path = args.humandb_path
+        else:
+            log('ERROR', 'The human_db directory ({0}) does not seem to have write permission'.format(args.humandb_path))
     if args.genome_version:
         genome_version = args.genome_version
         annovar_genome_version = 'hg19' if genome_version == 'GRCh37' else 'hg38'
