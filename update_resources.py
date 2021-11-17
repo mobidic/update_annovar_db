@@ -202,6 +202,7 @@ def main():
         if annovar_path and \
                 not resources_path:
             resources_path = '{}/humandb'.format(annovar_path)
+    new_name = None
     if args.rename:
         new_name = args.rename
     http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
